@@ -15,6 +15,10 @@ struct Process
     int page = 0;
 };
 
+void FIFO(vector<Process>vec);
+void LRU(vector<Process>vec);
+void Random(vector<Process>vec);
+
 int main()
 {
     vector<Process>processes;
@@ -30,13 +34,15 @@ int main()
         iss >> proc.process_id >> proc.action >> proc.page;
         if(proc.action == 'C' || proc.action == 'T'){proc.page = 0;}
         processes.push_back(proc);
-        //cout << processes[count].process_id << " " << processes[count].action << " " << processes[count].page << endl;
         count++;
         if(count>=100){break;}
     }
     process_list.close();
 
-    cout << processes.size();
+    for(int i=0; i<processes.size(); i++)
+    {
+        cout << processes[i].process_id << " " << processes[i].action << " " << processes[i].page << endl;
+    }
 
 
 return 0;
