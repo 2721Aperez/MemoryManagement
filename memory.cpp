@@ -4,7 +4,8 @@
 //#include<utility>
 #include<algorithm>
 #include<fstream>
-#include <sstream>
+#include<sstream>
+#include<queue>
 
 using namespace std;
 
@@ -21,7 +22,7 @@ struct Page//Maybe something we use??
     Process indiv_process;
 };
 
-void FIFO(vector<Process>vec);
+void FIFO(vector<Process>vec, vector<Pages>pages);
 void LRU(vector<Process>vec);
 void Random(vector<Process>vec);
 
@@ -29,7 +30,7 @@ int main()
 {
     //Rather than have a 2d vector and things more compilcated I created a vector of structs so now each element has an ID, action, and a page.
     vector<Process>processes;
-    vector<bool>pages(20);//The amount of pages we're restricted to.  Not sure if its supposed to be a bool but that's my guess for now.  Might actually have to create another struct
+    vector<Page>pages(20);//The amount of pages we're restricted to.  Not sure if its supposed to be a bool but that's my guess for now.  Might actually have to create another struct
     Process proc;
     ifstream process_list;
     string line;
@@ -46,13 +47,20 @@ int main()
         if(count>=100){break;}
     }
     process_list.close();
+
+    FIFO(processes, pages);
 return 0;
 }
 
 
-void FIFO(vector<Process>vec)
+void FIFO(vector<Process>processes, vector<Page>pages)
 {
+    queue<Process>proc_q;
 
+    for(auto proc : processes)
+    {
+        
+    }
 }
 
 //For testing output of the vector
