@@ -1,13 +1,17 @@
-#include <iostream>
+#include<iostream>
 #include<string>
 #include<vector>
-//#include<utility>
 #include<algorithm>
 #include<fstream>
 #include<sstream>
 #include<queue>
+#include<unordered_map>
+#include<set>
+
 
 using namespace std;
+
+int CAPACITY = 20;
 
 struct Process
 {
@@ -18,19 +22,19 @@ struct Process
 
 struct Page//Maybe something we use??
 {
-    bool taken = true;
+    bool taken = false;
     Process indiv_process;
 };
 
-void FIFO(vector<Process>vec, vector<Pages>pages);
-void LRU(vector<Process>vec);
+void FIFO(vector<Process>processes, vector<Page>pages);
+void LRU(vector<Process>processes, vector<Page>pages);
 void Random(vector<Process>vec);
 
 int main()
 {
     //Rather than have a 2d vector and things more compilcated I created a vector of structs so now each element has an ID, action, and a page.
     vector<Process>processes;
-    vector<Page>pages(20);//The amount of pages we're restricted to.  Not sure if its supposed to be a bool but that's my guess for now.  Might actually have to create another struct
+    vector<Page>pages(20);//The amount of pages we're restricted to. Physical Memory
     Process proc;
     ifstream process_list;
     string line;
@@ -48,7 +52,7 @@ int main()
     }
     process_list.close();
 
-    FIFO(processes, pages);
+    LRU(processes, pages);
 return 0;
 }
 
@@ -60,6 +64,48 @@ void FIFO(vector<Process>processes, vector<Page>pages)
     for(auto proc : processes)
     {
         
+    }
+}
+
+void LRU(vector<Process>processes, vector<Page>pages)
+{
+    vector<Process>proc_updates;
+    unordered_map<int,int>indexes;
+    set<int>process_created;
+    int page_spot = 0;
+
+    for(int i=0; i< processes.size(); i++)
+    {
+        if(processes[i].action == 'C')
+        {
+            if(process_created.find(processes[i].process_id) == process_created.end()){ process_created.insert(processes[i].process_id); }
+            else{cout << "Process has already been created. " << endl;}
+        }
+        else if(processes[i].action == 'T')
+        {
+             if(process_created.find(processes[i].process_id) != process_created.end())
+             { 
+                process_created.erase(process_created.find(processes[i].process_id)); 
+                //TODO Remove process from physical memory
+             }
+             else{ cout << "Process doesn't exist. "<< endl; }
+        }
+        else if(processes[i].action == 'A')
+        {
+            
+        }
+        else if(processes[i].action == 'R')
+        {
+            /* code */
+        }
+        else if(processes[i].action == 'W')
+        {
+            /* code */
+        }
+        else if(processes[i].action == 'F')
+        {
+            /* code */
+        }
     }
 }
 
