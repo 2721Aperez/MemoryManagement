@@ -86,13 +86,30 @@ void LRU(vector<Process>processes, vector<Page>pages)
              if(process_created.find(processes[i].process_id) != process_created.end())
              { 
                 process_created.erase(process_created.find(processes[i].process_id)); 
-                //TODO Remove process from physical memory
+                for(int j=0; j<pages.size(); j++)
+                {
+                    if(pages[j].indiv_process.process_id == processes[i].process_id)
+                    {
+                        pages.erase(pages.begin()+j);
+                        pages[j].taken = false;
+                    }
+                }
              }
              else{ cout << "Process doesn't exist. "<< endl; }
         }
         else if(processes[i].action == 'A')
         {
+            int amnt_allocate = processes[i].page;
             
+            for(int j=0; j<pages.size() && (amnt_allocate) > 0; j++)
+            {
+                if(!pages[j].taken)
+                {
+                    pages[j].indiv_process = processes[i];
+                    pages[j].taken = true;
+                    amnt_allocate--;
+                }
+            }
         }
         else if(processes[i].action == 'R')
         {
