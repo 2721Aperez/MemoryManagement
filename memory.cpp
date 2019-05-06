@@ -25,6 +25,15 @@ void FIFO(vector<Process>vec);
 void LRU(vector<Process>vec);
 void Random(vector<Process>vec);
 
+//Process Format: PROCESS_ID    ACTION  PAGE
+//Process_ID: numeric value corresponding to process running on the system
+//ACTION: 'C' = Process created (PAGE field not present)
+//        'T' = Process terminated (PAGE field not present)
+//        'A' = Process allocated memory at address 'PAGE'
+//        'R' = process read 'PAGE'
+//        'W' = process wrote to 'PAGE'
+//        'F' = process freed memory at address 'PAGE'
+
 int main()
 {
     //Rather than have a 2d vector and things more compilcated I created a vector of structs so now each element has an ID, action, and a page.
@@ -46,12 +55,52 @@ int main()
         if(count>=100){break;}
     }
     process_list.close();
+
+    FIFO(processes);
 return 0;
 }
 
 
-void FIFO(vector<Process>vec)
+void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
 {
+    vector<Process> pageQueue;
+    int pageIndex = 0;
+    //bool emptyPage = false;
+
+    for(int i = 0; i < vec.size(); i++) {
+        
+        switch(vec[i].action) {
+            case 'C': cout << "Process " << vec[i].process_id << " created" << endl;
+                      break;
+            case 'T': cout << "Process " << vec[i].process_id << " terminated" << endl;
+                      break;
+            case 'A': cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
+                      break;
+            case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
+                      break;
+            case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl;
+                      break;
+            case 'F': cout << "Process " << vec[i].process_id << " freed memory at address " << vec[i].page << endl;
+                      break;
+            default: cout << "Invalid process action" << endl;
+        }
+        
+        // if(vec[i].action == 'A') {
+        //     pageQueue.push_back(vec[i]);
+
+        //     if(!pageTable[i]) pageTable[i] = true;
+        //     else {
+        //         int pageTableIndex = i;
+        //         while(!emptyPage) {
+        //             pageTabl
+        //             if(!pageTable[i])
+        //         }
+
+
+        //     }
+        // }
+    }
+
 
 }
 
