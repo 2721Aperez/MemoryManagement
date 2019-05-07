@@ -1,12 +1,17 @@
-#include <iostream>
+#include<iostream>
 #include<string>
 #include<vector>
-//#include<utility>
 #include<algorithm>
 #include<fstream>
-#include <sstream>
+#include<sstream>
+#include<queue>
+#include<unordered_map>
+#include<set>
+
 
 using namespace std;
+
+int CAPACITY = 20;
 
 struct Process
 {
@@ -56,7 +61,7 @@ int main()
 {
     //Rather than have a 2d vector and things more compilcated I created a vector of structs so now each element has an ID, action, and a page.
     vector<Process>processes;
-    vector<bool>pages(20);//The amount of pages we're restricted to.  Not sure if its supposed to be a bool but that's my guess for now.  Might actually have to create another struct
+    vector<Page>pages(20);//The amount of pages we're restricted to. Physical Memory
     Process proc;
     ifstream process_list;
     string line;
@@ -75,6 +80,7 @@ int main()
     process_list.close();
 
     FIFO(processes);
+
 return 0;
 }
 
@@ -330,6 +336,64 @@ int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr) {
     }
 
     return physicalAddr;
+
+void LRU(vector<Process>processes, vector<Page>pages)
+{
+    vector<Process>proc_updates;
+    unordered_map<int,int>indexes;
+    set<int>process_created;
+    int page_spot = 0;
+
+    for(int i=0; i< processes.size(); i++)
+    {
+        if(processes[i].action == 'C')
+        {
+            if(process_created.find(processes[i].process_id) == process_created.end()){ process_created.insert(processes[i].process_id); }
+            else{cout << "Process has already been created. " << endl;}
+        }
+        else if(processes[i].action == 'T')
+        {
+             if(process_created.find(processes[i].process_id) != process_created.end())
+             { 
+                process_created.erase(process_created.find(processes[i].process_id)); 
+                for(int j=0; j<pages.size(); j++)
+                {
+                    if(pages[j].indiv_process.process_id == processes[i].process_id)
+                    {
+                        pages.erase(pages.begin()+j);
+                        pages[j].taken = false;
+                    }
+                }
+             }
+             else{ cout << "Process doesn't exist. "<< endl; }
+        }
+        else if(processes[i].action == 'A')
+        {
+            int amnt_allocate = processes[i].page;
+            
+            for(int j=0; j<pages.size() && (amnt_allocate) > 0; j++)
+            {
+                if(!pages[j].taken)
+                {
+                    pages[j].indiv_process = processes[i];
+                    pages[j].taken = true;
+                    amnt_allocate--;
+                }
+            }
+        }
+        else if(processes[i].action == 'R')
+        {
+            /* code */
+        }
+        else if(processes[i].action == 'W')
+        {
+            /* code */
+        }
+        else if(processes[i].action == 'F')
+        {
+            /* code */
+        }
+    }
 }
 
 //For testing output of the vector
