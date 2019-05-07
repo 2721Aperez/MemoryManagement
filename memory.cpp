@@ -46,6 +46,7 @@ int main()
         if(count>=100){break;}
     }
     process_list.close();
+    
 return 0;
 }
 
@@ -55,8 +56,8 @@ void FIFO(vector<Process>vec)
 
 }
 
-//For testing output of the vector
-    // for(int i=0; i<processes.size(); i++)
-    // {
-    //     cout << processes[i].process_id << " " << processes[i].action << " " << processes[i].page << endl;
-    // }
+// For testing output of the vector
+//     for(int i=0; i<processes.size(); i++)
+//     {
+//         cout << processes[i].process_id << " " << processes[i].action << " " << processes[i].page << endl;
+//     }
