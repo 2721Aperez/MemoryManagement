@@ -23,6 +23,12 @@ struct Page//Maybe something we use??
     Process indiv_process;
 };
 
+struct PageTable
+{
+    int p_id;
+    vector<Page> pages;
+};
+
 void FIFO(vector<Process>vec);
 void LRU(vector<Process>vec);
 void Random(vector<Process>vec);
@@ -31,6 +37,10 @@ void printMem(vector<Page> memory);
 int findNextPage(const vector<Page> memory);
 void printSwap(const vector<Page> memory);
 
+// Function to clear physical memory of specific process
+bool terminateProcess(vector<Page>& memory, int p_id);
+
+int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr);
 
 //Process Format: PROCESS_ID    ACTION  PAGE
 //Process_ID: numeric value corresponding to process running on the system
@@ -69,14 +79,20 @@ return 0;
 
 // FIFO memory allocation, treat physical memory as a queue
 void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
-{
+{   
+    PageTable pTable;
     vector<Page> swapSpace; // "Infinite" swap space
+    
+    //TODO: change size of physical mem back to 20
+    
     //vector<Pages> pageTable; // Page table for a specific process
     vector<Page> physicalMem(5); // Physical Memory pages
     cout << "Physical Memory size = " << physicalMem.size() << " Physical Memory Capacity = " << physicalMem.capacity() << endl;
     //vector<vector<Process>> physicalMem;
     vector<Page> pageQueue(20); // Not needed?
     int pageIndex = 0;
+    int virtualIndex = -1;
+    int physicalIndex = -1;
     //bool emptyPage = false;
     //vector<
     for(int i = 0; i < vec.size(); i++) {
@@ -85,7 +101,7 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
             // Process created, create page table?
             case 'C': cout << "Process " << vec[i].process_id << " created" << endl;
                       //pageQueue.push_back(vec[i]);
-                      
+                      pTable.p_id = vec[i].process_id;
                       break;
             // Process terminated, free all of its pages, and page table?
             case 'T': cout << "Process " << vec[i].process_id << " terminated" << endl;
@@ -97,6 +113,11 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
                               physicalMem[j].virtAddr = -1;
                           }
                       }
+                      
+                      // Free pages in page table
+                    //   for(int k = 0; k < pTable.pages.size(); k++) {
+
+                    //   }
                       // Code to free all of the pages of the terminated process in swap space
                       break;
             // Process allocated memory at address 'PAGE'
@@ -136,11 +157,45 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
                       }
                       break;
             case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
-                      // Terminate process if trying to access
+                      // Terminate process if trying to access page it has not prev allocated
+                      //if(vec[i].process_id != physicalMem)
+                      virtualIndex = -1;
+                      for(int j = 0; j < physicalMem.size(); j++) {
+                          if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr) {
+                              virtualIndex = j;
+                          }
+                      }
+                      if(virtualIndex == -1) {
+                          cout << "PROCESS " << vec[i].process_id << "\t\tKILLED" << endl;
+                          // Code to empty page table of killed process?
+                          if(terminateProcess(physicalMem, vec[i].process_id)) { cout << "Process terminated successfuly" << endl; }
+                      }
                       break;
             case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl;
+                      virtualIndex = -1;
+                      for(int j = 0; j < physicalMem.size(); j++) {
+                          if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr) {
+                              virtualIndex = j;
+                          }
+                      }
+                      if(virtualIndex == -1) {
+                          cout << "PROCESS " << vec[i].process_id << "\t\tKILLED" << endl;
+                          // Code to empty page table of killed process?
+                          if(terminateProcess(physicalMem, vec[i].process_id)) { cout << "Process terminated successfuly" << endl; }
+                      }
                       break;
             case 'F': cout << "Process " << vec[i].process_id << " freed memory at address " << vec[i].page << endl;
+                      // Assuming freed page has already been allocated
+                      physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
+                      
+                      if(physicalIndex >= 0) {
+                          physicalMem[physicalIndex].taken = false;
+                          physicalMem[physicalIndex].physAddr = -1;
+                          physicalMem[physicalIndex].virtAddr = -1;
+                      }
+                      else { 
+                          cout << "Error: Process did not successfully free memory at address " << vec[i].page << endl;
+                      }
                       break;
             default: cout << "Invalid process action" << endl;
         }
@@ -195,6 +250,31 @@ int findNextPage(const vector<Page> memory) {
         }
     }
     return -1; // Error: physical memory full
+}
+
+bool terminateProcess(vector<Page>& memory, int p_id) {
+    bool successful = false;
+
+    for(int i = 0; i < memory.size(); i++) {
+        if(memory[i].indiv_process.process_id == p_id) {
+            memory[i].taken = false;
+            memory[i].virtAddr = -1;
+            memory[i].physAddr = -1;
+            successful = true;
+        }
+    }
+    return successful;
+}
+
+int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr) {
+    int physicalAddr = -1;
+
+    for(int i = 0; i < memory.size(); i++) {
+        if(memory[i].indiv_process.process_id == p_id && memory[i].virtAddr == virtAddr)
+            physicalAddr = i;
+    }
+
+    return physicalAddr;
 }
 
 //For testing output of the vector
