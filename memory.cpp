@@ -23,12 +23,39 @@ struct Process
 struct Page//Maybe something we use??
 {
     bool taken = false;
+    int physAddr = -1;
+    int virtAddr = -1;
     Process indiv_process;
 };
 
-void FIFO(vector<Process>processes, vector<Page>pages);
-void LRU(vector<Process>processes, vector<Page>pages);
+struct PageTable
+{
+    int p_id;
+    vector<Page> pages;
+};
+
+void FIFO(vector<Process>vec);
+void LRU(vector<Process>vec);
 void Random(vector<Process>vec);
+//Process createProcess(vector<Process>vec);
+void printMem(const vector<Page> memory);
+int findNextPage(const vector<Page> memory);
+void printSwap(const vector<Page> memory);
+void printProcess(const vector<PageTable> processes);
+
+// Function to clear physical memory of specific process
+bool terminateProcess(vector<Page>& memory, int p_id);
+
+int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr);
+
+//Process Format: PROCESS_ID    ACTION  PAGE
+//Process_ID: numeric value corresponding to process running on the system
+//ACTION: 'C' = Process created (PAGE field not present)
+//        'T' = Process terminated (PAGE field not present)
+//        'A' = Process allocated memory at address 'PAGE'
+//        'R' = process read 'PAGE'
+//        'W' = process wrote to 'PAGE'
+//        'F' = process freed memory at address 'PAGE'
 
 int main()
 {
@@ -52,20 +79,263 @@ int main()
     }
     process_list.close();
 
-    LRU(processes, pages);
+    FIFO(processes);
+
 return 0;
 }
 
-
-void FIFO(vector<Process>processes, vector<Page>pages)
-{
-    queue<Process>proc_q;
-
-    for(auto proc : processes)
-    {
+// FIFO memory allocation, treat physical memory as a queue
+void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
+{   
+    PageTable pTable;
+    vector<PageTable> processes;
+    vector<Page> swapSpace; // "Infinite" swap space
+    
+    //TODO: change size of physical mem back to 20
+    
+    //vector<Pages> pageTable; // Page table for a specific process
+    vector<Page> physicalMem(5); // Physical Memory pages
+    cout << "Physical Memory size = " << physicalMem.size() << " Physical Memory Capacity = " << physicalMem.capacity() << endl;
+    //vector<vector<Process>> physicalMem;
+    vector<Page> pageQueue(20); // Not needed?
+    int pageIndex = 0;
+    int virtualIndex = -1;
+    int physicalIndex = -1;
+    //bool emptyPage = false;
+    //vector<
+    for(int i = 0; i < vec.size(); i++) {
         
+        switch(vec[i].action) {
+            // Process created, create page table?
+            case 'C': cout << "Process " << vec[i].process_id << " created" << endl;
+                      //pageQueue.push_back(vec[i]);
+                      pTable.p_id = vec[i].process_id;
+                      processes.push_back(pTable);
+                      break;
+            // Process terminated, free all of its pages, and page table?
+            case 'T': cout << "Process " << vec[i].process_id << " terminated" << endl;
+                      //Free all the pages of the terminated process in physical memory
+                      for(int j = 0; j < physicalMem.size(); j++) {
+                          if(physicalMem[j].indiv_process.process_id == vec[i].process_id) {
+                              physicalMem[j].taken = false;
+                              physicalMem[j].physAddr = -1;
+                              physicalMem[j].virtAddr = -1;
+                          }
+                      }
+
+                      for(int k = 0; k < processes.size(); k++) {
+                          if(vec[i].process_id == processes[k].p_id) {
+                              processes.erase(processes.begin()+k);
+                              cout << "Process " << vec[i].process_id << " Page Table erased!" << endl;
+                          }
+                      }
+                      
+                      
+                      // Code to free all of the pages of the terminated process in swap space
+                      for(int m = 0; m < swapSpace.size(); m++) {
+                          if(swapSpace[m].indiv_process.process_id == vec[i].process_id) {
+                              swapSpace.erase(swapSpace.begin()+m);
+                          }
+                      }
+                      break;
+            // Process allocated memory at address 'PAGE'
+            case 'A': cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
+                      // If physical memory is not full, allocate memory at next page
+                      
+                      pageIndex = findNextPage(physicalMem);
+
+                      if(pageIndex < physicalMem.capacity()) {
+                          physicalMem[pageIndex].taken = true;
+                          physicalMem[pageIndex].indiv_process = vec[i];
+                          physicalMem[pageIndex].virtAddr = vec[i].page;
+                          physicalMem[pageIndex].physAddr = pageIndex;
+                          
+
+                          for(int j = 0; j < processes.size(); j++) {
+                              if(processes[j].p_id == vec[i].process_id) {
+                                  processes[j].pages.push_back(physicalMem[pageIndex]);
+                                  break;
+                              }
+                          }
+                          pageIndex++;
+                      }
+                      //else case when physical memory is full, fall back on FIFO
+                      else {
+                          pageIndex = 0;
+
+                          //Is the below if statement necessary?
+                          if(!physicalMem[pageIndex].taken) {
+                              physicalMem[pageIndex].taken = true;
+                              physicalMem[pageIndex].indiv_process = vec[i];
+                              physicalMem[pageIndex].virtAddr = vec[i].page;
+                              physicalMem[pageIndex].physAddr = pageIndex;
+                          }
+                          else {
+                              // Swap existing data to swap space
+                              Page temp = physicalMem[pageIndex];
+                              temp.taken = false;
+                              temp.physAddr = -1;
+                              for(int j = 0; j < processes.size(); j++) {
+                                  if(processes[j].p_id == temp.indiv_process.process_id) {
+                                      for(int k = 0; k < processes[j].pages.size(); k++) {
+                                          if(processes[j].pages[k].virtAddr == temp.virtAddr)
+                                              processes[j].pages[k].physAddr = -1;
+                                      }
+                                  }
+                              }
+                              swapSpace.push_back(temp);
+                              physicalMem[pageIndex].taken = true;
+                              physicalMem[pageIndex].indiv_process = vec[i];
+                              physicalMem[pageIndex].virtAddr = vec[i].page;
+                              physicalMem[pageIndex].physAddr = pageIndex;
+
+                              for(int j = 0; j < processes.size(); j++) {
+                                if(processes[j].p_id == vec[i].process_id) {
+                                    processes[j].pages.push_back(physicalMem[pageIndex]);
+                                    break;
+                                }
+                            }
+
+                          }
+                          pageIndex++;
+                      }
+                      break;
+            case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
+                      // Terminate process if trying to access page it has not prev allocated
+                      //if(vec[i].process_id != physicalMem)
+                      virtualIndex = -1;
+                      for(int j = 0; j < physicalMem.size(); j++) {
+                          if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr) {
+                              virtualIndex = j;
+                          }
+                      }
+
+                      // TODO: Do we need to consider swap space?
+
+                      if(virtualIndex == -1) {
+                          cout << "PROCESS " << vec[i].process_id << "\t\tKILLED" << endl;
+                          // Code to empty page table of killed process?
+                          if(terminateProcess(physicalMem, vec[i].process_id)) { cout << "Process terminated successfuly" << endl; }
+                      }
+                      break;
+            case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl;
+                      virtualIndex = -1;
+                      for(int j = 0; j < physicalMem.size(); j++) {
+                          if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr) {
+                              virtualIndex = j;
+                          }
+                      }
+
+                      // TODO: Same as previous 'R' case
+
+                      if(virtualIndex == -1) {
+                          cout << "PROCESS " << vec[i].process_id << "\t\tKILLED" << endl;
+                          // Code to empty page table of killed process?
+                          if(terminateProcess(physicalMem, vec[i].process_id)) { cout << "Process terminated successfuly" << endl; }
+                      }
+                      break;
+            case 'F': cout << "Process " << vec[i].process_id << " freed memory at address " << vec[i].page << endl;
+                      // Assuming freed page has already been allocated
+                      physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
+                      
+                      if(physicalIndex >= 0) {
+                          physicalMem[physicalIndex].taken = false;
+                          physicalMem[physicalIndex].physAddr = -1;
+                          physicalMem[physicalIndex].virtAddr = -1;
+                      }
+                      else { 
+                          cout << "Error: Process did not successfully free memory at address " << vec[i].page << endl;
+                      }
+                      break;
+            default: cout << "Invalid process action" << endl;
+        }
+
+        //Print physical memory
+        cout << "PHYSICAL" << endl;
+        printMem(physicalMem);
+        
+        
+        // if(vec[i].action == 'A') {
+        //     pageQueue.push_back(vec[i]);
+
+        //     if(!pageTable[i]) pageTable[i] = true;
+        //     else {
+        //         int pageTableIndex = i;
+        //         while(!emptyPage) {
+        //             pageTabl
+        //             if(!pageTable[i])
+        //         }
+
+
+        //     }
+        // }
+    }
+
+    //Print swap space
+    cout << "SWAP" << endl;
+    printSwap(swapSpace);
+    printProcess(processes);
+}
+
+void printSwap(const vector<Page> memory) {
+    for(int i = 0; i < memory.size(); i++) {
+        cout << "\tProcess\t" << memory[i].indiv_process.process_id << "\tVirtual\t" << memory[i].virtAddr << endl;
     }
 }
+
+void printMem(const vector<Page> memory) {
+    for(int i = 0; i < memory.capacity(); i++) {
+        cout << "\t" << i << "\t";
+        if(!memory[i].taken) { cout << "FREE" << endl; }
+        else {
+            cout << "Process\t" << memory[i].indiv_process.process_id << endl;
+        }
+    }
+}
+
+void printProcess(const vector<PageTable> process) {
+    for(int i = 0; i < process.size(); i++) {
+        cout << "Process " << process[i].p_id << endl;
+        for(int j = 0; j < process[i].pages.size(); j++) {
+            cout << "\tVirtual\t" << process[i].pages[j].virtAddr << "\tPhysical\t" << process[i].pages[j].physAddr << endl;
+        }
+    }
+}
+
+int findNextPage(const vector<Page> memory) {
+    int index = 0;
+    for(int i = 0; i < memory.size(); i++) {
+        if(!memory[i].taken) { 
+            index = i;
+            return index;
+        }
+    }
+    return -1; // Error: physical memory full
+}
+
+bool terminateProcess(vector<Page>& memory, int p_id) {
+    bool successful = false;
+
+    for(int i = 0; i < memory.size(); i++) {
+        if(memory[i].indiv_process.process_id == p_id) {
+            memory[i].taken = false;
+            memory[i].virtAddr = -1;
+            memory[i].physAddr = -1;
+            successful = true;
+        }
+    }
+    return successful;
+}
+
+int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr) {
+    int physicalAddr = -1;
+
+    for(int i = 0; i < memory.size(); i++) {
+        if(memory[i].indiv_process.process_id == p_id && memory[i].virtAddr == virtAddr)
+            physicalAddr = i;
+    }
+
+    return physicalAddr;
 
 void LRU(vector<Process>processes, vector<Page>pages)
 {
