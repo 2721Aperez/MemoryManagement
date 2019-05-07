@@ -27,7 +27,9 @@ void FIFO(vector<Process>vec);
 void LRU(vector<Process>vec);
 void Random(vector<Process>vec);
 //Process createProcess(vector<Process>vec);
-void printPhysMem(vector<Page> memory);
+void printMem(vector<Page> memory);
+int findNextPage(const vector<Page> memory);
+void printSwap(const vector<Page> memory);
 
 
 //Process Format: PROCESS_ID    ACTION  PAGE
@@ -65,12 +67,12 @@ int main()
 return 0;
 }
 
-
+// FIFO memory allocation, treat physical memory as a queue
 void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
 {
     vector<Page> swapSpace; // "Infinite" swap space
     //vector<Pages> pageTable; // Page table for a specific process
-    vector<Page> physicalMem(20); // Physical Memory pages
+    vector<Page> physicalMem(5); // Physical Memory pages
     cout << "Physical Memory size = " << physicalMem.size() << " Physical Memory Capacity = " << physicalMem.capacity() << endl;
     //vector<vector<Process>> physicalMem;
     vector<Page> pageQueue(20); // Not needed?
@@ -80,12 +82,14 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
     for(int i = 0; i < vec.size(); i++) {
         
         switch(vec[i].action) {
+            // Process created, create page table?
             case 'C': cout << "Process " << vec[i].process_id << " created" << endl;
                       //pageQueue.push_back(vec[i]);
                       
                       break;
+            // Process terminated, free all of its pages, and page table?
             case 'T': cout << "Process " << vec[i].process_id << " terminated" << endl;
-                      //Free all the pages of the terminated process
+                      //Free all the pages of the terminated process in physical memory
                       for(int j = 0; j < physicalMem.size(); j++) {
                           if(physicalMem[j].indiv_process.process_id == vec[i].process_id) {
                               physicalMem[j].taken = false;
@@ -93,17 +97,46 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
                               physicalMem[j].virtAddr = -1;
                           }
                       }
+                      // Code to free all of the pages of the terminated process in swap space
                       break;
+            // Process allocated memory at address 'PAGE'
             case 'A': cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
-                      if(pageIndex != physicalMem.capacity()) {
+                      // If physical memory is not full, allocate memory at next page
+                      
+                      pageIndex = findNextPage(physicalMem);
+
+                      if(pageIndex < physicalMem.capacity()) {
                           physicalMem[pageIndex].taken = true;
                           physicalMem[pageIndex].indiv_process = vec[i];
                           physicalMem[pageIndex].virtAddr = vec[i].page;
                           physicalMem[pageIndex].physAddr = pageIndex;
                           pageIndex++;
                       }
+                      //else case when physical memory is full, fall back on FIFO
+                      else {
+                          pageIndex = 0;
+                          if(!physicalMem[pageIndex].taken) {
+                              physicalMem[pageIndex].taken = true;
+                              physicalMem[pageIndex].indiv_process = vec[i];
+                              physicalMem[pageIndex].virtAddr = vec[i].page;
+                              physicalMem[pageIndex].physAddr = pageIndex;
+                          }
+                          else {
+                              // Swap existing data to swap space
+                              Page temp = physicalMem[pageIndex];
+                              temp.taken = false;
+                              temp.physAddr = -1;
+                              swapSpace.push_back(temp);
+                              physicalMem[pageIndex].taken = true;
+                              physicalMem[pageIndex].indiv_process = vec[i];
+                              physicalMem[pageIndex].virtAddr = vec[i].page;
+                              physicalMem[pageIndex].physAddr = pageIndex;
+                          }
+                          pageIndex++;
+                      }
                       break;
             case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
+                      // Terminate process if trying to access
                       break;
             case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl;
                       break;
@@ -111,7 +144,10 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
                       break;
             default: cout << "Invalid process action" << endl;
         }
-        printPhysMem(physicalMem);
+
+        //Print physical memory
+        cout << "PHYSICAL" << endl;
+        printMem(physicalMem);
         
         // if(vec[i].action == 'A') {
         //     pageQueue.push_back(vec[i]);
@@ -129,11 +165,18 @@ void FIFO(vector<Process>vec/*, vector<bool>& pageTable*/)
         // }
     }
 
-
+    //Print swap space
+    cout << "SWAP" << endl;
+    printSwap(swapSpace);
 }
 
-void printPhysMem(vector<Page> memory) {
-    cout << "PHYSICAL" << endl;
+void printSwap(vector<Page> memory) {
+    for(int i = 0; i < memory.size(); i++) {
+        cout << "\tProcess\t" << memory[i].indiv_process.process_id << "\tVirtual\t" << memory[i].virtAddr << endl;
+    }
+}
+
+void printMem(vector<Page> memory) {
     for(int i = 0; i < memory.capacity(); i++) {
         cout << "\t" << i << "\t";
         if(!memory[i].taken) { cout << "FREE" << endl; }
@@ -141,6 +184,17 @@ void printPhysMem(vector<Page> memory) {
             cout << "Process\t" << memory[i].indiv_process.process_id << endl;
         }
     }
+}
+
+int findNextPage(const vector<Page> memory) {
+    int index = 0;
+    for(int i = 0; i < memory.size(); i++) {
+        if(!memory[i].taken) { 
+            index = i;
+            return index;
+        }
+    }
+    return -1; // Error: physical memory full
 }
 
 //For testing output of the vector
