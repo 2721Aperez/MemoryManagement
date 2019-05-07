@@ -336,6 +336,7 @@ int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr) {
     }
 
     return physicalAddr;
+}
 
 void LRU(vector<Process>processes, vector<Page>pages)
 {
@@ -384,14 +385,17 @@ void LRU(vector<Process>processes, vector<Page>pages)
         else if(processes[i].action == 'R')
         {
             /* code */
+            ;
         }
         else if(processes[i].action == 'W')
         {
             /* code */
+            ;
         }
         else if(processes[i].action == 'F')
         {
             /* code */
+            ;
         }
     }
 }
