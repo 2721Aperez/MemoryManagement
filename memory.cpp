@@ -140,7 +140,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                     pageIndex = findNextPage(physicalMem);
                     
                     //If there is room, store it in Memory
-                    if(pageIndex < physicalMem.capacity() && pageIndex!=-1) 
+                    if(pageIndex < physicalMem.capacity() && pageIndex != -1) 
                     {
                         physicalMem[pageIndex].taken = true;
                         physicalMem[pageIndex].indiv_process = vec[i];
@@ -161,14 +161,32 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                       else//Use the LRU method
                       {
                         int find_lru = 1000000;
-                        int lru_id=0;
-                        pageIndex = 0;
+                        int lru_id = 0;
+                        Page temp;
                         for(auto itr = lru_map.begin(); itr != lru_map.end(); itr++)
                         {
                             if(itr->second < find_lru){ find_lru = itr->second; lru_id = itr->first; }
                         }
 
-
+                        for(auto itr : physicalMem)
+                        {
+                            if(lru_id == itr.indiv_process.process_id)
+                            {
+                                temp.indiv_process.process_id =itr.indiv_process.process_id;
+                                break;
+                            }
+                        }
+                        for(int j = 0; j < processList.size(); j++) 
+                        {
+                            if(processList[j].p_id == temp.indiv_process.process_id)
+                            {
+                                for(int k = 0; k < processList[j].pages.size(); k++) 
+                                {
+                                    if(processList[j].pages[k].virtAddr == temp.virtAddr)
+                                    processList[j].pages[k].physAddr = -1;
+                                }
+                            }
+                        }
                       }
                       
                     break;
