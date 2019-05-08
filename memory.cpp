@@ -95,7 +95,7 @@ return 0;
 void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, vector<PageTable> processList)
 {
     PageTable p_table;
-    unordered_map<int,int>LRU_alg;
+    unordered_map<int,int>lru_map;
     vector<Page>pageQueue(20);
     int pageIndex=0, virtualIndex = -1, physicalIndex = -1;
     cout << "Physical memory size: " << physicalMem.size() << endl << "Physical Memory Capacity: " << physicalMem.capacity() << endl;
@@ -137,7 +137,40 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                       break;
             case 'A':
                     cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
+                    pageIndex = findNextPage(physicalMem);
+                    
+                    //If there is room, store it in Memory
+                    if(pageIndex < physicalMem.capacity() && pageIndex!=-1) 
+                    {
+                        physicalMem[pageIndex].taken = true;
+                        physicalMem[pageIndex].indiv_process = vec[i];
+                        physicalMem[pageIndex].virtAddr = vec[i].page;
+                        physicalMem[pageIndex].physAddr = pageIndex;
+                        lru_map[vec[i].process_id] = i;
 
+                        for(int j = 0; j < processList.size(); j++) 
+                        {
+                            if(processList[j].p_id == vec[i].process_id) 
+                            {
+                                processList[j].pages.push_back(physicalMem[pageIndex]);
+                                break;
+                            }
+                        }
+                          pageIndex++;
+                    }
+                      else//Use the LRU method
+                      {
+                        int find_lru = 100000;
+                        int lru_id=0;
+                        pageIndex = 0;
+                        for(auto itr = lru_map.begin(); itr != lru_map.end(); itr++)
+                        {
+                            if(itr->second < find_lru){ find_lru = itr->second; lru_id = itr->first; }
+                        }
+
+                        
+                      }
+                      
                     break;
 
         }
@@ -487,68 +520,6 @@ int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr) {
     }
 
     return physicalAddr;
-}
-
-void LRU(vector<Process>processes, vector<Page>pages)
-{
-    vector<Process>proc_updates;
-    unordered_map<int,int>indexes;
-    set<int>process_created;
-    int page_spot = 0;
-
-    for(int i=0; i< processes.size(); i++)
-    {
-        if(processes[i].action == 'C')
-        {
-            if(process_created.find(processes[i].process_id) == process_created.end()){ process_created.insert(processes[i].process_id); }
-            else{cout << "Process has already been created. " << endl;}
-        }
-        else if(processes[i].action == 'T')
-        {
-             if(process_created.find(processes[i].process_id) != process_created.end())
-             { 
-                process_created.erase(process_created.find(processes[i].process_id)); 
-                for(int j=0; j<pages.size(); j++)
-                {
-                    if(pages[j].indiv_process.process_id == processes[i].process_id)
-                    {
-                        pages.erase(pages.begin()+j);
-                        pages[j].taken = false;
-                    }
-                }
-             }
-             else{ cout << "Process doesn't exist. "<< endl; }
-        }
-        else if(processes[i].action == 'A')
-        {
-            int amnt_allocate = processes[i].page;
-            
-            for(int j=0; j<pages.size() && (amnt_allocate) > 0; j++)
-            {
-                if(!pages[j].taken)
-                {
-                    pages[j].indiv_process = processes[i];
-                    pages[j].taken = true;
-                    amnt_allocate--;
-                }
-            }
-        }
-        else if(processes[i].action == 'R')
-        {
-            /* code */
-            ;
-        }
-        else if(processes[i].action == 'W')
-        {
-            /* code */
-            ;
-        }
-        else if(processes[i].action == 'F')
-        {
-            /* code */
-            ;
-        }
-    }
 }
 
 //For testing output of the vector
