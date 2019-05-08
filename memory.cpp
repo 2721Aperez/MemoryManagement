@@ -7,6 +7,7 @@
 #include<queue>
 #include<unordered_map>
 #include<set>
+#include<unordered_map>
 
 
 using namespace std;
@@ -35,7 +36,7 @@ struct PageTable
 };
 
 void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, vector<PageTable> processList);
-void LRU(vector<Process>vec);
+void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, vector<PageTable> processList);
 void Random(vector<Process>vec);
 //Process createProcess(vector<Process>vec);
 void printMem(const vector<Page> memory);
@@ -86,9 +87,61 @@ int main()
     }
     process_list.close();
 
-    FIFO(processes, physicalMem, swapSpace, processList);
-
+    //FIFO(processes, physicalMem, swapSpace, processList);
+    LRU(processes, physicalMem, swapSpace, processList);
 return 0;
+}
+
+void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, vector<PageTable> processList)
+{
+    PageTable p_table;
+    unordered_map<int,int>LRU_alg;
+    vector<Page>pageQueue(20);
+    int pageIndex=0, virtualIndex = -1, physicalIndex = -1;
+    cout << "Physical memory size: " << physicalMem.size() << endl << "Physical Memory Capacity: " << physicalMem.capacity() << endl;
+
+    for(int i=0; i<vec.size(); i++)
+    {
+        switch(vec[i].action)
+        {
+            case 'C': 
+                    cout << "Process " << vec[i].process_id << " created" << endl;
+                    p_table.p_id = vec[i].process_id;
+                    processList.push_back(p_table);
+                    break;
+            case 'T':
+                    cout << "Process " << vec[i].process_id << " terminated" <<endl;
+                        //Free all the pages of the terminated process in physical memory
+                      for(int j = 0; j < physicalMem.size(); j++) 
+                      {
+                          if(physicalMem[j].indiv_process.process_id == vec[i].process_id) {
+                              physicalMem[j].taken = false;
+                              physicalMem[j].physAddr = -1;
+                              physicalMem[j].virtAddr = -1;
+                          }
+                      }
+                      for(int k = 0; k < processList.size(); k++) 
+                      {
+                          if(vec[i].process_id == processList[k].p_id) {
+                              processList.erase(processList.begin()+k);
+                              cout << "Process " << vec[i].process_id << " Page Table erased!" << endl;
+                          }
+                      }
+                      
+                      
+                      // Code to free all of the pages of the terminated process in swap space
+                      for(int m = 0; m < swapSpace.size(); m++) 
+                      {
+                          if(swapSpace[m].indiv_process.process_id == vec[i].process_id) { swapSpace.erase(swapSpace.begin()+m); }
+                      }
+                      break;
+            case 'A':
+                    cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
+
+                    break;
+
+        }
+    }
 }
 
 // FIFO memory allocation, treat physical memory as a queue
