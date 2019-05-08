@@ -160,7 +160,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                     }
                       else//Use the LRU method
                       {
-                        int find_lru = 100000;
+                        int find_lru = 1000000;
                         int lru_id=0;
                         pageIndex = 0;
                         for(auto itr = lru_map.begin(); itr != lru_map.end(); itr++)
@@ -168,7 +168,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                             if(itr->second < find_lru){ find_lru = itr->second; lru_id = itr->first; }
                         }
 
-                        
+
                       }
                       
                     break;
