@@ -263,6 +263,23 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
 
             break;
 
+            case 'W':
+            break;
+
+            case 'F':
+                    cout << "Process " << vec[i].process_id << " freed memory at address " << vec[i].page << endl;
+                      // Assuming freed page has already been allocated
+                    physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page); 
+                    if(physicalIndex >= 0)
+                    {
+                        physicalMem[physicalIndex].taken = false;
+                        physicalMem[physicalIndex].physAddr = -1;
+                        physicalMem[physicalIndex].virtAddr = -1;
+                    }
+                    else{ cout << "Error: Process did not successfully free memory at address " << vec[i].page << endl; }
+            break;
+            
+            default: cout << "Invalid action" <<endl; break;
         }
     }
 }
