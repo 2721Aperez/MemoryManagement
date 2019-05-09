@@ -108,7 +108,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                     cout << "Process " << vec[i].process_id << " created" << endl;
                     p_table.p_id = vec[i].process_id;
                     processList.push_back(p_table);
-                    break;
+            break;
             case 'T':
                     cout << "Process " << vec[i].process_id << " terminated" <<endl;
                         //Free all the pages of the terminated process in physical memory
@@ -134,7 +134,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                       {
                           if(swapSpace[m].indiv_process.process_id == vec[i].process_id) { swapSpace.erase(swapSpace.begin()+m); }
                       }
-                      break;
+            break;
             case 'A':
                     cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
                     pageIndex = findNextPage(physicalMem);
@@ -158,21 +158,22 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                         }
                           pageIndex++;
                     }
-                      else//Use the LRU method
-                      {
+                    else//Use the LRU method
+                    {
                         int find_lru = 1000000;
                         int lru_id = 0;
                         Page temp;
+                        Page dummy_proc;
                         for(auto itr = lru_map.begin(); itr != lru_map.end(); itr++)
                         {
                             if(itr->second < find_lru){ find_lru = itr->second; lru_id = itr->first; }
                         }
-
                         for(auto itr : physicalMem)
                         {
                             if(lru_id == itr.indiv_process.process_id)
                             {
                                 temp.indiv_process.process_id =itr.indiv_process.process_id;
+                                itr = dummy_proc;
                                 break;
                             }
                         }
@@ -182,14 +183,47 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                             {
                                 for(int k = 0; k < processList[j].pages.size(); k++) 
                                 {
-                                    if(processList[j].pages[k].virtAddr == temp.virtAddr)
-                                    processList[j].pages[k].physAddr = -1;
+                                    if(processList[j].pages[k].virtAddr == temp.virtAddr){ processList[j].pages[k].physAddr = -1; }
                                 }
                             }
                         }
-                      }
-                      
-                    break;
+                        pageIndex = findNextPage(physicalMem);
+                        swapSpace.push_back(temp);
+                        physicalMem[pageIndex].taken = true;
+                        physicalMem[pageIndex].indiv_process = vec[i];
+                        physicalMem[pageIndex].virtAddr = vec[i].page;
+                        physicalMem[pageIndex].physAddr = pageIndex;
+
+                        for(int j = 0; j < processList.size(); j++) 
+                        {
+                            if(processList[j].p_id == vec[i].process_id) 
+                            {
+                                processList[j].pages.push_back(physicalMem[pageIndex]);
+                                break;
+                            }
+                        }
+                        pageIndex++;
+                    }
+            break;
+            case 'R':
+                    cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
+                    physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
+
+                    if(pageIndex > physicalMem.capacity()){ pageIndex = 0; }
+
+                    if(physicalIndex == -1)
+                    {
+                        for(int k = 0; k < swapSpace.size(); k++)
+                        {
+                            int nextIndex = findNextPage(physicalMem);
+                            if(swapSpace[k].virtAddr == vec.page && swapSpace[k].indiv_process.process_id == vec[i].process_id)
+                            {
+                                
+                            }
+                        }
+                    }
+
+            break;
 
         }
     }
@@ -271,7 +305,8 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
                           pageIndex++;
                       }
                       //else case when physical memory is full, fall back on FIFO
-                      else {
+                      else 
+                      {
                           pageIndex = 0;
 
                           //Is the below if statement necessary?
