@@ -218,7 +218,45 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                             int nextIndex = findNextPage(physicalMem);
                             if(swapSpace[k].virtAddr == vec.page && swapSpace[k].indiv_process.process_id == vec[i].process_id)
                             {
-                                
+                                if(nextIndex != -1)
+                                {
+                                    physicalMem[nextIndex].indiv_process = vec[i];
+                                    physicalMem[nextIndex].taken = true;
+                                    physicalMem[nextIndex].virtAddr = vec[i].page;
+                                    physicalMem[nextIndex].physAddr = nextIndex; 
+                                    physicalIndex = nextIndex;
+                                    pageIndex++;
+                                }
+                                else//Swap time LRU style
+                                {
+                                    int find_lru = 1000000;
+                                    int lru_id = 0;
+                                    Page temp;
+                                    Page dummy_proc;
+                                    for(auto itr = lru_map.begin(); itr != lru_map.end(); itr++)
+                                    {
+                                        if(itr->second < find_lru){ find_lru = itr->second; lru_id = itr->first; }
+                                    }
+                                    for(auto itr : physicalMem)
+                                    {
+                                        if(lru_id == itr.indiv_process.process_id)
+                                        {
+                                            temp.indiv_process.process_id =itr.indiv_process.process_id;
+                                            itr = dummy_proc;
+                                            break;
+                                        }
+                                    }
+                                    for(int j = 0; j < processList.size(); j++) 
+                                    {
+                                        if(processList[j].p_id == temp.indiv_process.process_id)
+                                        {
+                                            for(int k = 0; k < processList[j].pages.size(); k++) 
+                                            {
+                                                if(processList[j].pages[k].virtAddr == temp.virtAddr){ processList[j].pages[k].physAddr = -1; }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -366,7 +404,8 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
                       if(physicalIndex == -1) {
                           for(int k = 0; k < swapSpace.size(); k++) {
                               int nextIndex = findNextPage(physicalMem);
-                              if(swapSpace[k].virtAddr == vec[i].page && swapSpace[k].indiv_process.process_id == vec[i].process_id) {
+                              if(swapSpace[k].virtAddr == vec[i].page && swapSpace[k].indiv_process.process_id == vec[i].process_id) 
+                              {
                                   // Page is in swap space
                                   //pageIndex = findNextPage(physicalMem);
                                   // There is an available page in physical memory
