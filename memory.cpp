@@ -216,7 +216,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                         for(int k = 0; k < swapSpace.size(); k++)
                         {
                             int nextIndex = findNextPage(physicalMem);
-                            if(swapSpace[k].virtAddr == vec.page && swapSpace[k].indiv_process.process_id == vec[i].process_id)
+                            if(swapSpace[k].virtAddr == vec[i].page && swapSpace[k].indiv_process.process_id == vec[i].process_id)
                             {
                                 if(nextIndex != -1)
                                 {
@@ -232,7 +232,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                                     int find_lru = 1000000;
                                     int lru_id = 0;
                                     Page temp;
-                                    Page dummy_proc;
+                                    Page dummy_proc;//Has default parameters
                                     for(auto itr = lru_map.begin(); itr != lru_map.end(); itr++)
                                     {
                                         if(itr->second < find_lru){ find_lru = itr->second; lru_id = itr->first; }
