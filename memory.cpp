@@ -336,7 +336,7 @@ int findPhysIndex(const vector<Page> memory, int p_id, int virtAddr) {
     }
 
     return physicalAddr;
-
+}
 void LRU(vector<Process>processes, vector<Page>pages)
 {
     vector<Process>proc_updates;
