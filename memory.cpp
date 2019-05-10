@@ -246,16 +246,53 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                                             break;
                                         }
                                     }
-                                    for(int j = 0; j < processList.size(); j++) 
+                                    int free_index = findNextPage(physicalMem);
+                                    physicalMem[free_index] = swapSpace[k];
+                                    physicalMem[free_index].physAddr = free_index;
+                                    physicalMem[free_index].taken = true;
+                                    swapSpace.push_back(temp);
+
+                                    cout << "Physical Memory full!" << endl;
+
+                                    // Update page tables 
+                                    for(int m = 0; m < processList.size(); m++) 
                                     {
-                                        if(processList[j].p_id == temp.indiv_process.process_id)
+                                        cout << "Page index = " << pageIndex << endl;
+                                        if(processList[m].p_id == temp.indiv_process.process_id) 
                                         {
-                                            for(int k = 0; k < processList[j].pages.size(); k++) 
+                                            // Found page table for swapped out process
+                                            for(int n = 0; n < processList[m].pages.size(); n++) 
                                             {
-                                                if(processList[j].pages[k].virtAddr == temp.virtAddr){ processList[j].pages[k].physAddr = -1; }
-                                            }
+                                                if(temp.indiv_process.page == processList[m].pages[n].indiv_process.page) 
+                                                {
+                                                    // Found specific page being swapped out
+                                                    processList[m].pages[n].physAddr = -1;
+                                                    processList[m].pages[n].taken = false;
+                                                    break;
+                                                }
+                                              }
                                         }
                                     }
+                                    for(int m = 0; m < processList.size(); m++) 
+                                    {
+                                        if(processList[m].p_id == physicalMem[pageIndex].indiv_process.process_id) 
+                                        {
+                                            cout << "test" << endl;
+                                            // Found page table for swapped in process
+                                            for(int a = 0; a < processList[m].pages.size(); a++) 
+                                            {
+                                                if(physicalMem[pageIndex].indiv_process.page == processList[m].pages[a].virtAddr) 
+                                                {
+                                                    // Found specific page being swapped in
+                                                    processList[m].pages[a].taken = true;
+                                                    processList[m].pages[a].physAddr = pageIndex;
+                                                    cout << "Process " << processList[m].p_id << " page " << processList[m].pages[a].virtAddr << " physAddr = " << processList[m].pages[a].physAddr << endl;
+                                                    break;
+                                                }
+                                            }
+                                              break;
+                                          }       
+                                      }
                                 }
                             }
                         }
