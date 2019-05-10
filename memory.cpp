@@ -319,6 +319,13 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
             case 'W':
                     cout << "Process " << vec[i].process_id << "write to " << vec[i].page << endl;
                     virtualIndex = -1;
+
+                    for(int j=0; j<physicalMem.size(); j++)
+                    {
+                        if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr){virtualIndex = j;}
+                    }
+                    
+
             break;
 
             case 'F':
