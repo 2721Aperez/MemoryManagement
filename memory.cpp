@@ -295,12 +295,30 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                                       }
                                 }
                             }
+                            swapSpace.erase(swapSpace.begin()+k);
                         }
                     }
-
+                    if(physicalIndex == -1) 
+                    {
+                        cout << "PROCESS " << vec[i].process_id << "\t\tKILLED" << endl;
+                        // Code to empty page table of killed process?
+                        // Erase page table for terminated process
+                        for(int j = 0; j < processList.size(); j++) 
+                        {
+                            if(processList[j].p_id == vec[i].process_id) { processList.erase(processList.begin()+j); }
+                        }
+                          // Free pages of terminated process in swap space
+                        for(int k = 0; k < swapSpace.size(); k++) 
+                        {
+                            if(swapSpace[k].indiv_process.process_id == vec[i].process_id) { swapSpace.erase(swapSpace.begin()+k); }
+                        }
+                        if(terminateProcess(physicalMem, vec[i].process_id)) { cout << "Process terminated successfuly" << endl; }
+                    }
             break;
 
             case 'W':
+                    cout << "Process " << vec[i].process_id << "write to " << vec[i].page << endl;
+                    virtualIndex = -1;
             break;
 
             case 'F':
