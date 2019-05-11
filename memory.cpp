@@ -19,6 +19,7 @@ struct Process
     int process_id;
     char action;
     int page = 0;
+    bool Dirty_bit = false;//false for it has not been modified
 };
 
 struct Page//Maybe something we use??
@@ -324,7 +325,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                     {
                         if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr){virtualIndex = j;}
                     }
-                    
+
 
             break;
 
