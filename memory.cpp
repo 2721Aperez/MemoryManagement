@@ -635,6 +635,39 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
 void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, vector<PageTable> processList){
     PageTable pTable;
     cout << "Physical Memory size = " << physicalMem.size() << "Physical Memory Capacity = " << physicalMem.capacity() << endl;
+    int pageIndex = 0;
+    int virtualIndex = -1;
+    int physicalIndex = -1;
+    for(int i = 0; i < vec.size(); i++){
+        switch(vec[i].action){
+            case 'C': cout << "Process " << vec[i].process_id << "created" << endl;
+                pTable.p_id = vec[i].process_id;
+                processList.push_back(pTable);
+                break;
+            case 'T': cout << "Process " << vec[i].process_id << "terminated" << endl;
+                for(int j = 0; i < physicalMem.size(); j++){
+                    if(physicalMem[j].indiv_process.process_id == vec[i].process_id){
+                        physicalMem[j].taken = false;
+                        physicalMem[j].physAddr = -1;
+                        physicalMem[j].virtAddr = -1;
+                    }
+                }
+                for(int k = 0; k < processList.size(); k++){
+                    if(vec[i].process_id == processList[k].p_id){
+                        processList.erase(processList.begin()+k);
+                        cout << "Process " << vec[i].process_id <<"Page Table erased!" << endl;
+                    }
+                }
+                for(int m = 0; m < swapSpace.size(); m++){
+                    if(swapSpace[m].indiv_process.process_id == vec[i].process_id){
+                        swapSpace.erase(swapSpace.begin()+m);
+                    }
+                }
+                break;
+            case 'A': cout << "Process " << vec[i].process_id[i] << "allocated memory at address " << vec[i].page << endl;
+                
+        }
+    }
 }
 
 void printSwap(const vector<Page> memory) {
