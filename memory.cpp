@@ -665,7 +665,32 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
                 }
                 break;
             case 'A': cout << "Process " << vec[i].process_id[i] << "allocated memory at address " << vec[i].page << endl;
-                
+            case 'W': cout << "Process " << vec[i].process_id[i] << " wrote to " << vec[i].page << endl;
+                virtualIndex = -1;
+                for(int j = 0; j < physicalMem.size(); j++){
+                    if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr){
+                        virtualIndex = j;
+                    }
+                }
+                if(virtualIndex == -1){
+                    cout << "Process " << vec[i].process_id << "\t\tKilled" << endl;
+                    if(terminateProcess(physicalMem, vec[i].process_id)){
+                        cout << "Process was terminated sucessfully" << endl;
+                    }
+                }
+                break;
+            case 'F': cout << "Process " << vec[i].process_id << " freed memory at address " << vec[i].page << endl;
+                physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
+                if(physicalIndex >= 0){
+                    physicalMem[physicalIndex].taken = false;
+                    physicalMem[physicalIndex].physAddr = -1;
+                    physicalMem[physicalIndex].virtAddr = -1;
+                }
+                else{
+                    cout << "Error: Process couldn't free memory at address " << vec[i].page << endl;
+                }
+                break;
+            default: cout << "Action is invalid" << endl;
         }
     }
 }
