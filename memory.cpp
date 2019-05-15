@@ -89,8 +89,8 @@ int main()
     }
     process_list.close();
 
-    //FIFO(processes, physicalMem, swapSpace, processList);
-    //LRU(processes, physicalMem, swapSpace, processList);
+    FIFO(processes, physicalMem, swapSpace, processList);
+    LRU(processes, physicalMem, swapSpace, processList);
     Random(processes, physicalMem, swapSpace, processList);
 return 0;
 }
@@ -420,6 +420,13 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                                     }
                             }
                            swapSpace.erase(swapSpace.begin()+j); 
+                        }
+                    }
+                    else
+                    {
+                        for(itr : physicalMem)
+                        {
+                            if(itr.indiv_process.process_id == vec[i].process_id){ itr.indiv_process.Dirty_bit = true; }
                         }
                     }
                     if(!is_in_memory) 
