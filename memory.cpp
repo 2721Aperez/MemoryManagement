@@ -424,9 +424,9 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                     }
                     else
                     {
-                        for(itr : physicalMem)
+                        for(auto phys : physicalMem)
                         {
-                            if(itr.indiv_process.process_id == vec[i].process_id){ itr.indiv_process.Dirty_bit = true; }
+                            if(phys.indiv_process.process_id == vec[i].process_id){ phys.indiv_process.Dirty_bit = true; }
                         }
                     }
                     if(!is_in_memory) 
