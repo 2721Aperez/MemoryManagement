@@ -8,6 +8,7 @@
 #include<unordered_map>
 #include<set>
 #include<unordered_map>
+#include<stdlib.h>
 
 
 using namespace std;
@@ -640,11 +641,11 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
     int physicalIndex = -1;
     for(int i = 0; i < vec.size(); i++){
         switch(vec[i].action){
-            case 'C': cout << "Process " << vec[i].process_id << "created" << endl;
+            case 'C': cout << "Process " << vec[i].process_id << " created" << endl;
                 pTable.p_id = vec[i].process_id;
                 processList.push_back(pTable);
                 break;
-            case 'T': cout << "Process " << vec[i].process_id << "terminated" << endl;
+            case 'T': cout << "Process " << vec[i].process_id << " terminated" << endl;
                 for(int j = 0; i < physicalMem.size(); j++){
                     if(physicalMem[j].indiv_process.process_id == vec[i].process_id){
                         physicalMem[j].taken = false;
@@ -664,7 +665,42 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
                     }
                 }
                 break;
-            case 'A': cout << "Process " << vec[i].process_id << "allocated memory at address " << vec[i].page << endl;
+            case 'A': cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
+                pageIndex = findNextPage(physicalMem);
+                if(pageIndex < physicalMem.capacity()){
+                    physicalMem[pageIndex].taken = true;
+                    physicalMem[pageIndex].indiv_process = vec[i];
+                    physicalMem[pageIndex].virtAddr = vec[i].page;
+                    physicalMem[pageIndex].physAddr = pageIndex;
+
+                    for(int j = 0; j < processList.size(); j++){
+                        if(processList[j].p_id == vec[i].process_id){
+                            processList[j].pages.push_back(physicalMem[pageIndex]);
+                            break;
+                        }
+                    }
+                    pageIndex++;
+                }
+                else{
+                    int randomP = rand() % 20;
+                    if(physicalMem[randomP].taken == false){        //if the random page is empty, use it
+                        physicalMem[randomP].taken = true;
+                        physicalMem[randomP].indiv_process = vec[i];
+                        physicalMem[randomP].virtAddr = vec[i].page;
+                        physicalMem[randomP].physAddr = pageIndex;
+
+                        for(int j = 0; j < processList.size(); j++){
+                            if(processList[j].p_id == vec[i].process_id){
+                                processList[j].pages.push_back(physicalMem[pageIndex]);
+                                break;
+                            }
+                        }
+                    }
+                    else{       //if the random page is not empty, swap it
+
+                    }
+                    pageIndex++;
+                }
             case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
                 physicalIndex = -1;
                 physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
