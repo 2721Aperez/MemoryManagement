@@ -149,9 +149,10 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
             case 'A': cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
                       // If physical memory is not full, allocate memory at next page
                       
+                      int temp = pageIndex;
                       pageIndex = findNextPage(physicalMem);
 
-                      if(pageIndex < physicalMem.capacity()) {
+                      if(pageIndex < physicalMem.capacity() && pageIndex != -1) {
                           physicalMem[pageIndex].taken = true;
                           physicalMem[pageIndex].indiv_process = vec[i];
                           physicalMem[pageIndex].virtAddr = vec[i].page;
@@ -164,11 +165,11 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
                                   break;
                               }
                           }
-                          pageIndex++;
+                          pageIndex = (pageIndex+1) % 20;
                       }
                       //else case when physical memory is full, fall back on FIFO
                       else {
-                          pageIndex = 0;
+                          pageIndex = temp;
 
                           //Is the below if statement necessary?
                           if(!physicalMem[pageIndex].taken) {
@@ -201,7 +202,7 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
                                     processList[j].pages.push_back(physicalMem[pageIndex]);
                                     break;
                                 }
-                            }
+                              }
 
                           }
                           pageIndex++;
