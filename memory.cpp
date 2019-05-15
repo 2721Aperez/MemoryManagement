@@ -66,7 +66,7 @@ int main()
     vector<Process>processes;
 
     // TODO: Change size of physical mem back to 20 before submission
-    vector<Page>physicalMem(5);//The amount of pages we're restricted to. Physical Memory
+    vector<Page>physicalMem(20);//The amount of pages we're restricted to. Physical Memory
 
     vector<Page> swapSpace; // "Infinite" swap space
     
