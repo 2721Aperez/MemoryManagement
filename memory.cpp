@@ -635,8 +635,8 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
 
 void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, vector<PageTable> processList){
     PageTable pTable;
-    cout << "Physical Memory size = " << physicalMem.size() << "Physical Memory Capacity = " << physicalMem.capacity() << endl;
-    int pageIndex = 0;
+    cout << "Physical Memory size = " << physicalMem.size() << " Physical Memory Capacity = " << physicalMem.capacity() << endl;
+    int pageIndex = rand() % 20;
     int virtualIndex = -1;
     int physicalIndex = -1;
     for(int i = 0; i < vec.size(); i++){
@@ -666,8 +666,26 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
                 }
                 break;
             case 'A': cout << "Process " << vec[i].process_id << " allocated memory at address " << vec[i].page << endl;
-                pageIndex = findNextPage(physicalMem);
-                if(pageIndex < physicalMem.capacity()){
+                if(physicalMem[pageIndex].taken == false){      //the page is empty
+                    physicalMem[pageIndex].taken = true;
+                    physicalMem[pageIndex].indiv_process = vec[i];
+                    physicalMem[pageIndex].virtAddr = vec[i].page;
+                    physicalMem[pageIndex].physAddr = pageIndex;
+                }
+                else{
+                    Page temp = physicalMem[pageIndex];
+                    temp.taken = false;
+                    temp.physAddr = -1;
+                    for(int j = 0; j < processList.size(); j++){
+                        if(processList[j].p_id == temp.indiv_process.process_id){
+                            for(int k = 0; k < processList[j].pages.size(); k++){
+                                if(processList[j].pages[k].virtAddr == temp.virtAddr){
+                                    processList[j].pages[k].physAddr = -1;
+                                }
+                            }
+                        }
+                    }
+                    swapSpace.push_back(temp);
                     physicalMem[pageIndex].taken = true;
                     physicalMem[pageIndex].indiv_process = vec[i];
                     physicalMem[pageIndex].virtAddr = vec[i].page;
@@ -679,28 +697,8 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
                             break;
                         }
                     }
-                    pageIndex++;
                 }
-                else{
-                    int randomP = rand() % 20;
-                    if(physicalMem[randomP].taken == false){        //if the random page is empty, use it
-                        physicalMem[randomP].taken = true;
-                        physicalMem[randomP].indiv_process = vec[i];
-                        physicalMem[randomP].virtAddr = vec[i].page;
-                        physicalMem[randomP].physAddr = pageIndex;
-
-                        for(int j = 0; j < processList.size(); j++){
-                            if(processList[j].p_id == vec[i].process_id){
-                                processList[j].pages.push_back(physicalMem[pageIndex]);
-                                break;
-                            }
-                        }
-                    }
-                    else{       //if the random page is not empty, swap it
-
-                    }
-                    pageIndex++;
-                }
+                break;
             case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
                 physicalIndex = -1;
                 physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
@@ -781,10 +779,11 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
                 virtualIndex = -1;
                 if(vec[i].Dirty_bit == false){
                     vec[i].Dirty_bit = true;
+                    cout << "Dirty Bit is set" << endl;
                 }
                 else
                 {
-                    continue;
+                    cout << "Dirty Bit is already set" << endl;
                 }
                 
                 for(int j = 0; j < physicalMem.size(); j++){
@@ -877,6 +876,11 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
             default: cout << "Action is invalid" << endl;
         }
     }
+    cout << "PHYSICAL" << endl;
+    printMem(physicalMem);
+    cout << "SWAP" << endl;
+    printSwap(swapSpace);
+    printProcess(processList);
 }
 
 void printSwap(const vector<Page> memory) {
