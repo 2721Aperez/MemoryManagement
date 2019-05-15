@@ -322,10 +322,21 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
             case 'W': //make a page dirty ;)
                     cout << "Process " << vec[i].process_id << "write to " << vec[i].page << endl;
                     virtualIndex = -1;
-
+                    bool found = false;
                     for(int j=0; j<physicalMem.size(); j++)
                     {
                         if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr){virtualIndex = j;}
+                    }
+                    for(auto itr : physicalMem)
+                    {
+                        if(vec[i].process_id == itr.indiv_process.process_id){found = true;}
+                    }
+                    if(!found)//If not in physical memory
+                    {
+                        for(int j=0; j<swapSpace.size(); j++)
+                        {
+
+                        }
                     }
 
 
