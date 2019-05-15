@@ -318,7 +318,7 @@ void LRU(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, v
                     }
             break;
 
-            case 'W':
+            case 'W': //make a page dirty ;)
                     cout << "Process " << vec[i].process_id << "write to " << vec[i].page << endl;
                     virtualIndex = -1;
 
@@ -573,7 +573,7 @@ void FIFO(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace, 
                           if(terminateProcess(physicalMem, vec[i].process_id)) { cout << "Process terminated successfuly" << endl; }
                       }
                       break;
-            case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl;
+            case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl; //make a page dirty ;)
                       virtualIndex = -1;
                       for(int j = 0; j < physicalMem.size(); j++) {
                           if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr) {
@@ -664,16 +664,28 @@ void Random(vector<Process>vec, vector<Page> physicalMem, vector<Page> swapSpace
                     }
                 }
                 break;
-            case 'A': cout << "Process " << vec[i].process_id[i] << "allocated memory at address " << vec[i].page << endl;
-            case 'W': cout << "Process " << vec[i].process_id[i] << " wrote to " << vec[i].page << endl;
+            case 'A': cout << "Process " << vec[i].process_id << "allocated memory at address " << vec[i].page << endl;
+            case 'R': cout << "Process " << vec[i].process_id << " read " << vec[i].page << endl;
+                physicalIndex = -1;
+                physicalIndex = findPhysIndex(physicalMem, vec[i].process_id, vec[i].page);
+                
+            case 'W': cout << "Process " << vec[i].process_id << " wrote to " << vec[i].page << endl; //make a page dirty ;)
                 virtualIndex = -1;
+                if(vec[i].Dirty_bit) == false){
+                    vec[i].Dirty_bit = true;
+                }
+                else
+                {
+                    continue;
+                }
+                
                 for(int j = 0; j < physicalMem.size(); j++){
                     if(vec[i].process_id == physicalMem[j].indiv_process.process_id && vec[i].page == physicalMem[j].virtAddr){
                         virtualIndex = j;
                     }
                 }
                 if(virtualIndex == -1){
-                    cout << "Process " << vec[i].process_id << "\t\tKilled" << endl;
+                    cout << "Process " << vec[i].process_id  << "\t\tKilled" << endl;
                     if(terminateProcess(physicalMem, vec[i].process_id)){
                         cout << "Process was terminated sucessfully" << endl;
                     }
